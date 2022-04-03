@@ -42,13 +42,13 @@
       $("hapusModal").hide();
     }
 
-    function getJsonData() {
+    function getJsonData(page = 1) {
         $.ajax({
-              url: "http://localhost:8000/api/barang",
+              url: "http://localhost:8000/api/barang?page=" + page,
               type: 'GET',
               dataType: 'json', // added data type
               success: function(mydata) {
-                var val ="";
+                var val =""
                 if(mydata.status == 'FAILED'){
                     val +='<tr>';
                     val +='<td>No data record</td>';
@@ -56,29 +56,50 @@
                     val +='<td>No data record</td>';
                     val +='<td>No data record</td>';
                 }else {
-                  var size = Object.keys(mydata.data).length;
+                  var size = Object.keys(mydata.data.data).length;
                   var i;
                   var no = 1;
                   for (i=0; i<size; i++) {
                       val +='<tr>';
                       val +='<td>'+no+'</td>';
-                      val +='<td id="Nama_'+mydata.data[i].id+'">'+mydata.data[i].nama+'</td>';
-                      val +='<td id="Harga_'+mydata.data[i].id+'">'+mydata.data[i].harga+'</td>';
+                      val +='<td id="Nama_'+mydata.data.data[i].id+'">'+mydata.data.data[i].nama+'</td>';
+                      val +='<td id="Harga_'+mydata.data.data[i].id+'">'+mydata.data.data[i].harga+'</td>';
                       val +='<td align="center">';
-                      val +='<button class="btn btn-xs btn-info" onclick="editData('+mydata.data[i].id+')">'
+                      val +='<button class="btn btn-xs btn-info" onclick="editData('+mydata.data.data[i].id+')">'
                             +'<i class="fas fa-edit"></i> Edit</button>&nbsp;';
-                      val += '<p id="h_'+mydata.data[i].id+'" class="d-none">'+mydata.data[i].nama+'</p>'
-                      val +='<button class="btn btn-xs btn-warning" onclick="confirmDialog('+mydata.data[i].id+')">'
+                      val += '<p id="h_'+mydata.data.data[i].id+'" class="d-none">'+mydata.data.data[i].nama+'</p>'
+                      val +='<button class="btn btn-xs btn-warning" onclick="confirmDialog('+mydata.data.data[i].id+')">'
                             +'<i class="fas fa-trash"></i> Hapus</button>';
                       val +="</td>";
                       val +="</tr>";
                       no++;
                   }
                 }
-                $("#hasil").html(val);
-            }
+                $("#hasil").html(val)
+
+                let paging = ""
+                let current_page = mydata.data.current_page
+                let prev = current_page - 1
+                let next = current_page + 1
+                console.log(current_page)
+                let j
+                if(current_page > 1){
+                  paging += '<li class="page-item"><a class="page-link" href="#" onclick="paginate('+prev+')">&laquo;</a></li>'
+                }
+                for(j = 1; j <= mydata.data.last_page; j++){
+                  paging += '<li class="page-item"><a class="page-link" href="#" onclick="paginate('+j+')">'+j+'</a></li>'
+                }
+                if(current_page != mydata.data.last_page){
+                  paging += '<li class="page-item"><a class="page-link" href="#" onclick="paginate('+next+')">&raquo;</a></li>'
+                }
+                $("#paging").html(paging)
+              }
         });
     }
+
+  function paginate(numberPage){
+    getJsonData(numberPage)
+  }
 
     function showInsertModal(){
       $("#tambahModal").show()
@@ -369,12 +390,12 @@
               </div>
               <!-- /.card-body -->
               <div class="card-footer clearfix">
-                <ul class="pagination pagination-sm m-0 float-right">
-                  <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
+                <ul class="pagination pagination-sm m-0 float-right" id="paging">
+                  <!-- <li class="page-item"><a class="page-link" href="#">&laquo;</a></li>
                   <li class="page-item"><a class="page-link" href="#">1</a></li>
                   <li class="page-item"><a class="page-link" href="#">2</a></li>
                   <li class="page-item"><a class="page-link" href="#">3</a></li>
-                  <li class="page-item"><a class="page-link" href="#">&raquo;</a></li>
+                  <li class="page-item"><a class="page-link" href="#">&raquo;</a></li> -->
                 </ul>
               </div>
             </div>

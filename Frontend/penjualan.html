@@ -38,7 +38,7 @@
   <script>
     function getJsonData() {
         $.ajax({
-              url: "http://localhost:8000/api/barang",
+              url: "http://localhost:8000/api/barang/get/all",
               type: 'GET',
               dataType: 'json', // added data type
               success: function(mydata) {

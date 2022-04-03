@@ -36,6 +36,30 @@ class barangControllers extends Controller
 
     public function index()
     {
+        $data = Barang::paginate(5);
+        if($data){
+            if(count($data) > 0){
+                return response()->json([
+                    'status' => 'SUCCESS',
+                    'message' => 'Successfully get data ! !',
+                    'data' => $data
+                ]);
+            }else {
+                return response()->json([
+                    'status' => 'FAILED',
+                    'message' => 'invalid, data is empty ! !'
+                ]);
+            }
+        }else {
+            return response()->json([
+                'status' => 'FAILED',
+                'message' => 'Internal Service Error ! !'
+            ]);
+        } 
+    }
+
+    public function getAll()
+    {
         $data = Barang::all();
         if($data){
             if(count($data) > 0){
