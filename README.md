@@ -9,4 +9,4 @@ Aplikasi kasir simple berbasis website dengan **MySQL** sebagai database
   - link fe
   - link be
 - ERD 
-![Gambar ERD](Resource/Erd_Kasir.png)
+  - ![Gambar ERD](Resource/Erd_Kasir.png)
