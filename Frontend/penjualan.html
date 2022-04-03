@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>AdminKatalog | VOKASI UB</title>
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+  <!-- Ionicons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Tempusdominus Bbootstrap 4 -->
+  <link rel="stylesheet" href="plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
+  <!-- iCheck -->
+  <link rel="stylesheet" href="plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+  <!-- JQVMap -->
+  <link rel="stylesheet" href="plugins/jqvmap/jqvmap.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="dist/css/adminlte.min.css">
+  <!-- overlayScrollbars -->
+  <link rel="stylesheet" href="plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
+  <!-- Daterange picker -->
+  <link rel="stylesheet" href="plugins/daterangepicker/daterangepicker.css">
+  <!-- Date picker -->
+  <link rel="stylesheet" href="datepicker/css/datepicker.css">
+  <!-- summernote -->
+  <link rel="stylesheet" href="plugins/summernote/summernote-bs4.css">
+  <!-- Google Font: Source Sans Pro -->
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+  <!-- Datepicker -->
+  <link rel="stylesheet" href="datepicker/css/datepicker.min.css">
+  
+  <!-- Select2 -->
+  <link rel="stylesheet" href="plugins/select2/css/select2.min.css">
+  <link rel="stylesheet" href="plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+
+  <script>
+    function getJsonData() {
+        $.ajax({
+              url: "http://localhost:8000/api/barang",
+              type: 'GET',
+              dataType: 'json', // added data type
+              success: function(mydata) {
+                var val ="";
+                if(mydata.status == 'FAILED'){
+                    val += '<option><p>Data kosong</p></option>'
+                }else {
+                  var size = Object.keys(mydata.data).length;
+                  var i;
+                  val += '<option>-- Pilih Barang --</option>'
+                  for (i=0; i<size; i++) {
+                    val += '<option id='+mydata.data[i].id+','+mydata.data[i].harga+'>'
+                      + ''+mydata.data[i].nama+''
+                      + '</option>'
+                  }
+                }
+                $("#hasil").html(val);
+            }
+        });
+    }
+
+    let tmp = Array()
+    let x = 0
+    function addItem(){
+        let e = document.getElementById('hasil')
+        let nama = e.options[e.selectedIndex].value
+        let dataId = e.options[e.selectedIndex].id.split(',')
+          let data = ""
+          data += '<tr id="item">'
+          data += '<td class="d-none" id="idBarang_'+dataId[0]+'">'+dataId[0]+'</td>'
+          data += '<td>'+nama+'</td>'
+          data += '<td id="harga_'+dataId[0]+'">'+dataId[1]+'</td>'
+          data += '<td class="text-center">'
+          data += '<input type="number" class="form-control" id="qty_'+dataId[0]+'" min="1" max="50" value="0" onchange="total('+dataId[0]+')">'
+          data += '</td>'
+          data += '<td class="text-right" id="sub'+dataId[0]+'">0</td>'
+          data += '<td class="text-center"><button type="button" class="btn btn-xs btn-warning" onclick="removeItem('+dataId[0]+')"><i class="fa fas fa-trash-alt"></i></button></td>'
+          data += '</tr>'
+        tmp[x] = data
+        x++
+        let result = ""
+        for(let y = 0; y < tmp.length; y++){
+          result += tmp[y]
+        }
+        document.getElementById('cartShop').insertAdjacentHTML("beforeBegin", data)
+    }
+
+    
+    function total(harga_id){
+      let qty = document.getElementById('qty_'+ harga_id).value
+      let price = document.getElementById('harga_' + harga_id).textContent
+      let subTotal = document.getElementById('sub'+ harga_id)
+      let count = qty * price
+      subTotal.textContent = count
+      finalCount()
+    }
+
+    function removeItem(id){
+      $("#idBarang_"+id).closest('tr').remove()
+      finalCount()
+    }
+
+    function finalCount(){
+      let final = 0
+      var elms = document.querySelectorAll("[id='item']")
+      for(var i = 0; i < elms.length; i++){
+        let sub = elms[i].outerText.split(/\s?\n?\t/)[2]
+        final += parseInt(sub)
+      }
+      var t = document.getElementById('total').textContent = final
+    }
+
+    function payment(){
+      let result
+      let final = parseInt(document.getElementById('total').textContent)
+      let pay = parseInt(document.getElementById('pay').value)
+      result = pay - final
+      document.getElementById('change').value = result
+    }
+
+    function reset(){
+      var elms = document.querySelectorAll("[id='item']")
+      for(var i = 0; i < elms.length; i++){
+        elms[i].closest('tr').remove()
+      }
+      finalCount()
+    }
+
+    function save(){
+      let loading = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="loading"></span>'
+      let butSave = document.getElementById('simpan')
+      butSave.removeChild(document.getElementById('logoSave'))
+      butSave.insertAdjacentHTML("afterBegin", loading)
+
+      //save total
+      let idPenjualan = 0
+      let pay = document.getElementById('total').textContent
+
+      const final = new Object();
+      final.total = pay;
+
+      $.ajax({
+          url: 'http://localhost:8000/api/barang/total',
+          type: 'POST',
+          data: JSON.stringify(final),
+          contentType: "application/json; charset=utf-8",
+          dataType: 'json',
+          async: false,
+          success: function(mydata) {
+              idPenjualan = mydata.data
+          },
+          error: function (err) {
+            alert("eror :"+JSON.stringify(err));
+          }
+      })
+
+      //save transaction
+      let elms = document.querySelectorAll("[id='item']")
+      for(let i = 0; i < elms.length; i++){
+        let idBarang = elms[i].childNodes[0].textContent
+        let jumlah = document.getElementById('qty_'+ idBarang).value
+        let subTotal = elms[i].outerText.split(/\s?\n?\t/)[2]
+
+        const data = new Object();
+        data.id_barang = idBarang;
+        data.id_penjualan = idPenjualan
+        data.jumlah = jumlah;
+        data.sub_total = subTotal;
+
+        $.ajax({
+          url: 'http://localhost:8000/api/barang/trx',
+          type: 'POST',
+          data: JSON.stringify(data),
+          contentType: "application/json; charset=utf-8",
+          dataType: 'json',
+          success: function(mydata) {
+            reset()
+            $('#pay').val("0")
+            $('#change').val("0")
+            butSave.removeChild(document.getElementById('loading'))
+            butSave.insertAdjacentHTML("afterBegin", '<i class="fa fas fa-save" id="logoSave"></i>')
+          },
+          error: function (err) {
+            alert("eror :"+JSON.stringify(err));
+          }
+        });
+      }
+    }
+
+  </script>
+</head>
+<body class="hold-transition sidebar-mini layout-fixed" onload="getJsonData()">
+<div class="wrapper">
+
+
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
+      </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a href="index.php" class="nav-link">Home</a>
+      </li>
+    </ul>
+    <!-- Right navbar links -->
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a href="signout.php" class="nav-link">
+            Sign Out&nbsp; 
+            <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <!-- /.navbar -->
+
+ <!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <!-- Brand Logo -->
+  <a href="index.php" class="brand-link">
+    <img src="dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
+         style="opacity: .8">
+    <span class="brand-text font-weight-light">AdminKatalog</span>
+  </a>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <!-- Sidebar Menu -->
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        
+        <li class="nav-item">
+          <a href="index.html" class="nav-link">
+            <i class="nav-icon fas fa-database"></i>
+            <p>
+              Data Master
+            </p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="penjualan.html" class="nav-link">
+            <i class="nav-icon fas fa-chart-line"></i>
+            <p>
+            Transaksi Penjualan
+            </p>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <!-- /.sidebar-menu -->
+  </div>
+  <!-- /.sidebar -->
+</aside>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h3><i class="fas fa-chart-line"></i> Transaksi Penjualan</h3>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item active"> Transaksi Penjualan</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+    <div class="card">
+          <div class="card-header">
+            <h3 class="card-title" style="margin-top:5px;"><i class="fas fa-list-ul"></i> Transaksi Penjualan</h3>
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body">
+            <div class="row">
+              <div class="col-lg-4" style="min-height:400px;">
+                <div class="card card-primary">
+                  <div class="card-header">
+                    <h3 class="card-title">Item Pembelian</h3>
+                  </div>
+                  <form>
+                    <div class="card-body">
+                      <div class="form-group">
+                        <label>Pilih Item</label>
+                        <select id="hasil" class="form-control select2" style="width: 100%;">
+                        </select>
+                      </div>
+                    </div>  
+                    <div class="card-footer">
+                      <input type="button" class="btn btn-primary float-right" onclick="addItem()" value="Tambah"> 
+                    </div>
+                  </form>
+                </div>
+
+              </div>
+              <div class="col-lg-8" style="min-height:400px;">
+                
+              <table class="table">
+                <thead>
+                <tr>
+                  <th width="40%">Nama Barang</th>
+                  <th width="20%">Harga</th>
+                  <th width="10%" class="text-center">Jumlah</th>
+                  <th width="20%" class="text-right">Subtotal</th>
+                  <th width="10%" class="text-center">Hapus</th>
+                </tr>
+                </thead>
+                <tbody id="cartShop" onchange="total()">
+                  <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td><strong>Total</strong></td>
+                    <td class="text-right" id="total"><strong>0</strong></td>
+                    <td>&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td><strong>Bayar</strong></td>
+                    <td><input type="text" class="form-control text-right" id="pay" value="0" onkeyup="payment()"></td>
+                    <td>&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td><strong>Kembali</strong></td>
+                    <td><input type="text" class="form-control text-right" id="change" value="0" readonly></td>
+                    <td>&nbsp;</td>
+                  </tr>
+                  <tr>
+                    <td colspan="5">
+                      <button type="submit" class="btn btn-primary float-right" id="simpan" onclick="save()"><i class="fa fas fa-save" id="logoSave"></i> Simpan</button>
+                      <button type="submit" class="btn btn-default float-right mr-3" onclick="reset()"><i class="fa fas fa-times-circle"></i> Batal</button>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!-- /.col-lg-8--> 
+            </div> 
+          </div>
+          <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+  <footer class="main-footer">
+    <strong>Copyright &copy; 2021 <a href="http://vokasi.ub.ac.id">Vokasi UB</a>.</strong>
+    All rights reserved.
+  </footer>
+
+</div>
+<!-- ./wrapper -->
+
+
+<!-- jQuery -->
+<script src="plugins/jquery/jquery.min.js"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="plugins/jquery-ui/jquery-ui.min.js"></script>
+<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+<script>
+  $.widget.bridge('uibutton', $.ui.button)
+</script>
+<!-- Bootstrap 4 -->
+<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script src="plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
+<!-- Summernote -->
+<script src="plugins/summernote/summernote-bs4.min.js"></script>
+<!-- overlayScrollbars -->
+<script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+<!-- AdminLTE App -->
+<script src="dist/js/adminlte.js"></script>
+
+<script src="dist/js/global.js"></script>
+<!-- CKEditor -->
+<script src="ckeditor/ckeditor.js"></script>
+<script>
+  // Replace the <textarea id="editor1"> with a CKEditor
+  // instance, using default configuration.
+  CKEDITOR.replace( 'editor1',{filebrowserImageBrowseUrl : 'kcfinder'} );
+  CKEDITOR.replace( 'editor2',{filebrowserImageBrowseUrl : 'kcfinder'} );
+
+</script>
+<!-- bootstrap datepicker -->
+<script src="datepicker/js/bootstrap-datepicker.js"></script>
+<script>
+  //Date picker
+  $('#datepicker-year').datepicker({
+		format: "yyyy",
+		orientation: "top auto",
+    viewMode: "years", 
+    minViewMode: "years",
+    autoclose: true
+  });
+</script>
+<!-- Select2 -->
+<script src="plugins/select2/js/select2.full.min.js"></script>
+</body>
+</html>
