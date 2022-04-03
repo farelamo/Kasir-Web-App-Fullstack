@@ -44,7 +44,7 @@
 
     function getJsonData(page = 1) {
         $.ajax({
-              url: "http://localhost:8000/api/barang?page=" + page,
+              url: "https://kerjaiin.com/backend-kasir/api/barang?page=" + page,
               type: 'GET',
               dataType: 'json', // added data type
               success: function(mydata) {
@@ -118,7 +118,7 @@
       data.harga = harga;
 
       $.ajax({
-          url: 'http://localhost:8000/api/barang/',
+          url: 'https://kerjaiin.com/backend-kasir/api/barang/new/data',
           type: 'POST',
           data: JSON.stringify(data),
           contentType: "application/json; charset=utf-8",
@@ -149,7 +149,7 @@
 
     function editData(id){
         $.ajax({
-              url: "http://localhost:8000/api/barang/"+id+"/edit",
+              url: "https://kerjaiin.com/backend-kasir/api/barang/"+id+"/edit",
               type: 'GET',
               dataType: 'json', // added data type
               success: function(mydata) {
@@ -176,7 +176,7 @@
       dataUpdate.harga = harga;
 
       $.ajax({
-          url: 'http://localhost:8000/api/barang/' + id,
+          url: 'https://kerjaiin.com/backend-kasir/api/barang/' + id,
           type: 'PUT',
           data: JSON.stringify(dataUpdate),
           contentType: "application/json; charset=utf-8",
@@ -207,7 +207,7 @@
     function deleteData(){
       var id =  document.getElementById("Hid").value
       $.ajax({
-          url: 'http://localhost:8000/api/barang/' + id,
+          url: 'https://kerjaiin.com/backend-kasir/api/barang/' + id,
           type: 'DELETE',
           success: function(data) {
             $("#Nama_"+id).closest('tr').remove()
@@ -224,7 +224,7 @@
       var keyword =  $("#kata_kunci").val()
       if(keyword != ""){
         $.ajax({
-          url: 'http://localhost:8000/api/barang/search/' + keyword,
+          url: 'https://kerjaiin.com/backend-kasir/api/barang/search/' + keyword,
           type: 'GET',
           success: function(mydata) {
             var val ="";
@@ -280,20 +280,11 @@
         <a class="nav-link" data-widget="pushmenu" href="#"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="index.php" class="nav-link">Home</a>
+        <a href="index.html" class="nav-link">Home</a>
       </li>
       <!--<li class="nav-item d-none d-sm-inline-block">
         <a href="#" class="nav-link">Contact</a>
       </li>-->
-    </ul>
-    <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item">
-        <a href="signout.php" class="nav-link">
-            Sign Out&nbsp; 
-            <i class="fas fa-sign-out-alt"></i>
-        </a>
-      </li>
     </ul>
   </nav>
   <!-- /.navbar -->
@@ -301,10 +292,10 @@
   <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
   <!-- Brand Logo -->
-  <a href="index.php" class="brand-link">
+  <a href="index.html" class="brand-link">
     <img src="dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
          style="opacity: .8">
-    <span class="brand-text font-weight-light">AdminKatalog</span>
+    <span class="brand-text font-weight-light">Kasir.in</span>
   </a>
 
   <!-- Sidebar -->

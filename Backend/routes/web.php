@@ -15,6 +15,7 @@ use App\Http\Controllers\TransaksiController;
 |
 */
 Route::resource('/api/barang', barangControllers::class);
+Route::post('/api/barang/new/data', [barangControllers::class, 'store']);
 Route::get('/api/barang/get/all', [barangControllers::class, 'getAll']);
 Route::get('/api/barang/search/{keyword}', [barangControllers::class, 'search']);
 Route::post('/api/barang/total', [TransaksiController::class, 'saveTotal']);
